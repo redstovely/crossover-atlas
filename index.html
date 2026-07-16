@@ -61,6 +61,9 @@
   .islider{display:flex;align-items:center;gap:10px}
   .islider input[type=range]{width:300px;accent-color:var(--track)}
   .islider .val{min-width:74px;font-size:16px}
+  .polar-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px}
+  @media (max-width:720px){ .polar-row{grid-template-columns:1fr} }
+  .polar-lab{text-align:center;font-size:12px;color:var(--ink2);margin-top:4px}
   .presets{display:flex;flex-wrap:wrap;gap:6px}
   .presets button{
     border:1px solid var(--border);background:var(--chip);color:var(--ink2);
@@ -162,6 +165,27 @@
     <span><span class="sw" style="background:var(--track)"></span>ground track (one repeat cycle)</span>
     <span><span class="dot" style="background:var(--xover)"></span>crossover point</span>
     <span style="color:var(--ink3)">longitudes are relative to the epoch ascending node</span>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Polar caps &mdash; conformal view</h2>
+  <p class="cap">Polar stereographic projection (conformal: crossing angles are faithful). Both caps are viewed from outside the globe &mdash; 0&deg; longitude at top, east runs counter-clockwise on the north cap and clockwise on the south cap.</p>
+  <div class="ctl" style="margin-bottom:12px">
+    <label for="capslider">cap boundary latitude</label>
+    <div class="islider">
+      <input type="range" id="capslider" min="45" max="89.5" step="0.5" value="70" aria-label="cap boundary latitude degrees">
+      <span class="val mono" id="capval">70.0&deg;</span>
+    </div>
+  </div>
+  <div class="polar-row">
+    <div><canvas id="poleN" width="560" height="560"></canvas><div class="polar-lab">North cap</div></div>
+    <div><canvas id="poleS" width="560" height="560"></canvas><div class="polar-lab">South cap</div></div>
+  </div>
+  <div class="legend">
+    <span><span class="sw" style="background:var(--track)"></span>ground track inside cap</span>
+    <span><span class="dot" style="background:var(--xover)"></span>crossover point</span>
+    <span><span class="sw" style="height:0;border-radius:0;background:none;border-top:2px dashed var(--crit)"></span>turning latitude min(i, 180&deg;&minus;i)</span>
   </div>
 </div>
 
@@ -358,7 +382,7 @@ function trackPolylines(k, m, iDeg, nPerRev){
 }
 
 /* ================= state ================= */
-let K = 15, M = 1, INC = 98.0;
+let K = 15, M = 1, INC = 98.0, CAP = 70;
 let bifCache = { key:"", data:null };
 
 const $ = id => document.getElementById(id);
@@ -461,6 +485,143 @@ function drawMap(){
   $("map-cap").textContent =
     "k = "+K+" revolutions in m = "+M+" sidereal day"+(M>1?"s":"")+" at i = "+INC.toFixed(1)+"° — "
     + pts.length + " crossover" + (pts.length===1?"":"s") + " per repeat cycle.";
+}
+
+/* --- polar caps (stereographic, conformal) --- */
+function drawPolarCaps(){
+  const nPerRev = K*M > 200 ? 700 : 1500;
+  const lines = trackPolylines(K, M, INC, nPerRev);
+  const { pts } = allCrossovers(K, M, INC);
+  drawPolarCap($("poleN"), +1, lines, pts);
+  drawPolarCap($("poleS"), -1, lines, pts);
+}
+function drawPolarCap(cv, hemi, lines, pts){
+  cv.style.aspectRatio = "1/1";
+  const { ctx, W, H } = setupCanvas(cv);
+  const cx = W/2, cy = H/2, Rpx = Math.min(W,H)/2 - 14;
+  const surf = cssVar("--panel");
+  const tanHalf = Math.tan((90-CAP)/2*D2R);
+  const rho = phi => Math.tan((90 - hemi*phi)/2*D2R)/tanHalf; /* 0 at the pole, 1 on the rim */
+  const XY = (lam, phi) => {
+    const r = Rpx*rho(phi), a = hemi*lam*D2R;
+    return [cx - r*Math.sin(a), cy - r*Math.cos(a)];
+  };
+  const maxPhi = Math.min(INC, 180-INC); /* turning latitude of the track */
+  ctx.clearRect(0,0,W,H);
+
+  /* graticule: ~4-6 latitude circles (adaptive step) + meridians every 30° */
+  const steps = [0.1,0.2,0.25,0.5,1,2,2.5,5,10,15,20];
+  let step = 20;
+  for (const s of steps){ if ((90-CAP)/s <= 6){ step = s; break; } }
+  const circles = [];
+  for (let la = Math.ceil((CAP+1e-6)/step)*step; la < 90-1e-6; la += step){
+    if (la > CAP+1e-6) circles.push(la);
+  }
+  ctx.strokeStyle = cssVar("--grid"); ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (const la of circles){
+    const r = Rpx*rho(hemi*la);
+    ctx.moveTo(cx+r, cy); ctx.arc(cx, cy, r, 0, 2*Math.PI);
+  }
+  for (let g=0; g<360; g+=30){
+    const a = g*D2R;
+    ctx.moveTo(cx - 0.03*Rpx*Math.sin(a), cy - 0.03*Rpx*Math.cos(a));
+    ctx.lineTo(cx - Rpx*Math.sin(a), cy - Rpx*Math.cos(a));
+  }
+  ctx.stroke();
+
+  /* coastlines, clipped to the rim */
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx, cy, Rpx, 0, 2*Math.PI); ctx.clip();
+  ctx.strokeStyle = cssVar("--coast"); ctx.lineWidth = 1;
+  ctx.beginPath();
+  const laMin = Math.max(0, CAP-25);
+  for (const line of COAST){
+    let started = false;
+    for (const [lo,la] of line){
+      if (hemi*la < laMin){ started = false; continue; }
+      const [x,y] = XY(lo, la);
+      if (!started){ ctx.moveTo(x,y); started = true; } else ctx.lineTo(x,y);
+    }
+  }
+  ctx.stroke();
+  ctx.restore();
+
+  /* rim = cap boundary */
+  ctx.strokeStyle = cssVar("--border"); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(cx, cy, Rpx, 0, 2*Math.PI); ctx.stroke();
+
+  /* latitude labels on two of the circles */
+  ctx.font = "10px ui-monospace, Menlo, monospace";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  const labIdx = circles.length > 1 ? [0, Math.floor(circles.length/2)] : circles.length ? [0] : [];
+  for (const ix of new Set(labIdx)){
+    const la = circles[ix], r = Rpx*rho(hemi*la);
+    const txt = (hemi<0?"−":"")+(step<1 ? la.toFixed(1) : la)+"°";
+    const w = ctx.measureText(txt).width;
+    ctx.fillStyle = surf; ctx.fillRect(cx-w/2-2, cy+r-6, w+4, 12);
+    ctx.fillStyle = cssVar("--ink3"); ctx.fillText(txt, cx, cy+r+0.5);
+  }
+
+  /* empty cap: track never reaches it */
+  if (maxPhi < CAP){
+    ctx.fillStyle = cssVar("--ink3");
+    ctx.font = "12.5px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText("track does not reach this cap", cx, cy-9);
+    ctx.fillText("(max |φ| = "+maxPhi.toFixed(1)+"°)", cx, cy+9);
+    return;
+  }
+
+  /* turning-latitude circle (dashed) */
+  if (maxPhi < 89.995){
+    const rt = Rpx*rho(hemi*maxPhi);
+    ctx.strokeStyle = cssVar("--crit"); ctx.lineWidth = 1.2; ctx.setLineDash([5,4]);
+    ctx.beginPath(); ctx.arc(cx, cy, rt, 0, 2*Math.PI); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = cssVar("--crit");
+    ctx.font = "10px ui-monospace, Menlo, monospace";
+    ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+    ctx.fillText("turning latitude", cx, cy - rt - 3);
+  }
+
+  /* ground track, broken where it exits the cap (no chords across the rim) */
+  ctx.strokeStyle = cssVar("--track"); ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  const inside = p => hemi*p[1] >= CAP;
+  const rimCross = (a,b) => { /* interpolate the crossing of |phi| = CAP */
+    const t = (hemi*CAP - a[1])/(b[1]-a[1]);
+    return [a[0]+t*(b[0]-a[0]), hemi*CAP];
+  };
+  for (const line of lines){
+    let pen = false;
+    for (let j=0;j<line.length;j++){
+      const p = line[j];
+      if (inside(p)){
+        if (!pen){
+          const q = (j>0) ? rimCross(line[j-1], p) : p;
+          const [xq,yq] = XY(q[0], q[1]);
+          ctx.moveTo(xq, yq); pen = true;
+          if (j>0){ const [x,y] = XY(p[0], p[1]); ctx.lineTo(x,y); }
+        } else { const [x,y] = XY(p[0], p[1]); ctx.lineTo(x,y); }
+      } else if (pen){
+        const q = rimCross(line[j-1], p);
+        const [x,y] = XY(q[0], q[1]);
+        ctx.lineTo(x,y); pen = false;
+      }
+    }
+  }
+  ctx.stroke();
+
+  /* crossover points inside the cap */
+  for (const p of pts){
+    if (hemi*p.phi < CAP) continue;
+    const [x,y] = XY(p.lam, p.phi);
+    ctx.beginPath(); ctx.arc(x, y, 4.4, 0, 2*Math.PI);
+    ctx.fillStyle = surf; ctx.fill();
+    ctx.beginPath(); ctx.arc(x, y, 3.2, 0, 2*Math.PI);
+    ctx.fillStyle = cssVar("--xover"); ctx.fill();
+  }
 }
 
 /* --- bifurcation --- */
@@ -623,7 +784,10 @@ function redrawAll(fast){
   $("mval").value = M;
   $("ival").innerHTML = INC.toFixed(1)+"&deg;";
   $("islider").value = INC;
+  $("capval").innerHTML = CAP.toFixed(1)+"&deg;";
+  $("capslider").value = CAP;
   drawMap();
+  drawPolarCaps();
   refreshStats();
   if (!fast) drawBif(); else drawBifCursorOnly();
 }
@@ -679,6 +843,7 @@ function commitTyped(inp, isK){
 });
 
 $("islider").addEventListener("input", e=>{ INC = parseFloat(e.target.value); redrawAll(true); });
+$("capslider").addEventListener("input", e=>{ CAP = parseFloat(e.target.value); redrawAll(true); });
 $("csv").addEventListener("click", downloadCSV);
 
 const pw = $("presets");
