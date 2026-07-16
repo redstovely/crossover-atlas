@@ -56,7 +56,8 @@
   .stepper button:last-child{border-radius:0 6px 6px 0}
   .stepper button:hover{background:var(--chip)}
   .stepper button:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--track);outline-offset:1px}
-  .stepper .val{min-width:46px;height:32px;display:flex;align-items:center;justify-content:center;border-top:1px solid var(--border);border-bottom:1px solid var(--border);font-size:16px}
+  .stepper input.val{width:46px;height:32px;text-align:center;padding:0;margin:0;border:1px solid var(--border);border-left:none;border-right:none;border-radius:0;background:transparent;color:var(--ink);font-size:16px}
+  .stepper input.val.invalid{outline:2px solid #d64545;outline-offset:1px}
   .islider{display:flex;align-items:center;gap:10px}
   .islider input[type=range]{width:300px;accent-color:var(--track)}
   .islider .val{min-width:74px;font-size:16px}
@@ -114,18 +115,18 @@
 
 <div class="controls">
   <div class="ctl">
-    <label for="kminus">k &mdash; revolutions / cycle</label>
+    <label for="kval">k &mdash; revolutions / cycle</label>
     <div class="stepper">
       <button id="kminus" aria-label="decrease k">&minus;</button>
-      <div class="val mono" id="kval">15</div>
+      <input class="val mono" id="kval" value="15" inputmode="numeric" aria-label="k value">
       <button id="kplus" aria-label="increase k">+</button>
     </div>
   </div>
   <div class="ctl">
-    <label for="mminus">m &mdash; sidereal days / cycle</label>
+    <label for="mval">m &mdash; sidereal days / cycle</label>
     <div class="stepper">
       <button id="mminus" aria-label="decrease m">&minus;</button>
-      <div class="val mono" id="mval">1</div>
+      <input class="val mono" id="mval" value="1" inputmode="numeric" aria-label="m value">
       <button id="mplus" aria-label="increase m">+</button>
     </div>
   </div>
@@ -616,9 +617,10 @@ function clampKM(){
   } else note.textContent = "";
 }
 function redrawAll(fast){
+  clearKMHint();
   clampKM();
-  $("kval").textContent = K;
-  $("mval").textContent = M;
+  $("kval").value = K;
+  $("mval").value = M;
   $("ival").innerHTML = INC.toFixed(1)+"&deg;";
   $("islider").value = INC;
   drawMap();
@@ -632,6 +634,50 @@ $("kplus").addEventListener("click", ()=>{ K++; redrawAll(); });
 $("kminus").addEventListener("click", ()=>{ K--; redrawAll(); });
 $("mplus").addEventListener("click", ()=>{ M++; redrawAll(); });
 $("mminus").addEventListener("click", ()=>{ M--; redrawAll(); });
+
+/* typed k / m entry: commit on Enter or blur; invalid input reverts to the last valid value */
+let kmHintT = null;
+function showKMHint(inp, msg){
+  clearKMHint();
+  inp.classList.add("invalid");
+  inp.title = msg;
+  const note = $("coprime-note");
+  note.textContent = msg + " — reverted.";
+  note.style.color = "#d64545";
+  kmHintT = setTimeout(clearKMHint, 2500);
+}
+function clearKMHint(){
+  clearTimeout(kmHintT); kmHintT = null;
+  for (const id of ["kval","mval"]){ $(id).classList.remove("invalid"); $(id).removeAttribute("title"); }
+  const note = $("coprime-note");
+  if (note.style.color){ note.textContent = ""; note.style.color = ""; }
+}
+function commitTyped(inp, isK){
+  const raw = inp.value.trim(), old = isK ? K : M;
+  if (raw === String(old)){ inp.value = old; return; }
+  if (!/^\d+$/.test(raw)){ inp.value = old; return; }
+  let v = parseInt(raw, 10);
+  if (isK){
+    v = Math.max(M === 1 ? 1 : M+1, Math.min(60, v));
+    if (gcd(v, M) > 1){ inp.value = old; showKMHint(inp, "k and m must be coprime"); return; }
+    K = v;
+  } else {
+    v = Math.max(1, Math.min(Math.max(1, K-1), v));
+    if (gcd(K, v) > 1){ inp.value = old; showKMHint(inp, "k and m must be coprime"); return; }
+    M = v;
+  }
+  redrawAll();
+}
+[["kval", true], ["mval", false]].forEach(([id, isK])=>{
+  const inp = $(id);
+  inp.addEventListener("blur", ()=>commitTyped(inp, isK));
+  inp.addEventListener("keydown", e=>{
+    if (e.key === "Enter") inp.blur();
+    else if (e.key === "Escape"){ inp.value = isK ? K : M; inp.blur(); }
+  });
+  inp.addEventListener("focus", ()=>inp.select());
+});
+
 $("islider").addEventListener("input", e=>{ INC = parseFloat(e.target.value); redrawAll(true); });
 $("csv").addEventListener("click", downloadCSV);
 
