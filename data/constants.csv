@@ -1,0 +1,5 @@
+name,value,unit,description
+J2,0.00108263,-,Earth oblateness coefficient
+R,6378.137,km,Earth equatorial radius
+MU,398600.4418,km^3/s^2,Earth gravitational parameter
+KSS,np.float64(0.0989182585977179),-,sun-synchronicity constant: cos(i) (R/a)^3.5 = -KSS

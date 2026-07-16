@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+message: >-
+  If you use this software or the SSO crossover catalogue, please cite it
+  using the metadata below; a journal article is in preparation (see
+  preferred-citation once published).
+title: "Crossover Atlas: crossover points of satellite repeat ground tracks"
+type: software
+authors:
+  - family-names: "Vázquez"
+    given-names: "Rafael"
+    affiliation: "Universidad de Sevilla"
+  - family-names: "Tesón Muñoz"
+    given-names: "Eva"
+  - family-names: "Montero Miñán"
+    given-names: "Alejandro"
+version: 1.0.0
+date-released: "2026-07-16"
+license: MIT
+abstract: >-
+  Interactive catalogue and verification scripts for the crossover
+  (self-intersection) structure of satellite repeat ground tracks: exact
+  crossover counts via a colleague-matrix all-roots solver, critical
+  inclinations and bifurcation structure, J2 invariance, an eccentric
+  O(e^2) extension, and a catalogue of 329 repeat sun-synchronous orbits.
+keywords:
+  - repeat ground track
+  - crossover points
+  - astrodynamics
+  - sun-synchronous orbits
+  - critical inclination
+repository-code: "https://github.com/redstovely/crossover-atlas"
+url: "https://redstovely.github.io/crossover-atlas/"
