@@ -1,6 +1,7 @@
 # Crossover Atlas
 
 [![verify](https://github.com/redstovely/crossover-atlas/actions/workflows/ci.yml/badge.svg)](https://github.com/redstovely/crossover-atlas/actions/workflows/ci.yml)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24169522.svg)](https://doi.org/10.5281/zenodo.24169522)
 
 Exact crossover counts, critical inclinations and crossover locations of
 circular repeat ground tracks. Companion code, data and interactive tool for
@@ -71,3 +72,5 @@ Eccentric orbits are outside the scope of the paper and of this version.
 ## License
 
 MIT. See `LICENSE` and `CITATION.cff`.
+
+Archived releases: <https://doi.org/10.5281/zenodo.24169522> (all versions).
