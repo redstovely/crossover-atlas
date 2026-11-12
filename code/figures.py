@@ -371,8 +371,8 @@ def fig_geometry():
     ax.plot(X[:2], Y[:2], 'o', ms=4.5, mfc=INK, mec='none', zorder=7)
     ax.plot(X[2], Y[2], 'o', ms=3.4, mfc='white', mec=INK, mew=0.7, zorder=7)
     ax.plot(X[3], Y[3], 'o', ms=3.2, mfc='white', mec=INK, mew=0.7, zorder=7)
-    ax.text(X[0] - 0.05, Y[0] - 0.02, r'$P(\theta_1)$', ha='right', va='center')
-    ax.text(X[1] + 0.05, Y[1] - 0.02, r'$P(\theta_2)$', ha='left', va='center')
+    ax.text(X[0] - 0.05, Y[0] - 0.02, r'$\theta_1$', ha='right', va='center')
+    ax.text(X[1] + 0.05, Y[1] - 0.02, r'$\theta_2$', ha='left', va='center')
     ax.text(X[3] - 0.04, Y[3] + 0.08, 'node', ha='right', va='center', fontsize=8)
     ax.annotate('turning point', xy=(X[2], Y[2] + 0.03), xytext=(X[2] - 0.12, Y[2] + 0.27),
                 ha='center', va='center', fontsize=8,
