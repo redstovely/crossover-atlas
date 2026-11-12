@@ -5,16 +5,25 @@ on:
   pull_request:
 
 jobs:
-  smoke-and-audit:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Install pinned dependencies
         run: pip install -r requirements.txt
-      - name: Smoke test
-        run: python run_all.py smoke
-      - name: Numeric audit vs published values
-        run: python run_all.py audit
+      - name: Fast tests
+        run: pytest -q tests
+      - name: Verification suite
+        working-directory: code
+        run: |
+          python verify.py | tee verify.out
+          grep -q "TOTAL: 0 failed checks" verify.out
+      - name: Interactive tool against the Python implementation
+        working-directory: code
+        run: python check_tool.py

@@ -1,32 +1,43 @@
 cff-version: 1.2.0
 message: >-
-  If you use this software or the SSO crossover catalogue, please cite it
-  using the metadata below; a journal article is in preparation (see
-  preferred-citation once published).
-title: "Crossover Atlas: crossover points of satellite repeat ground tracks"
+  If you use this software or the catalogue of repeat sun-synchronous
+  orbits, please cite the accompanying paper (see preferred-citation).
+title: "Crossover Atlas: exact crossover counts of repeat ground tracks"
 type: software
 authors:
   - family-names: "Vázquez"
     given-names: "Rafael"
     affiliation: "Universidad de Sevilla"
-  - family-names: "Tesón Muñoz"
+  - family-names: "Tesón"
     given-names: "Eva"
   - family-names: "Montero Miñán"
     given-names: "Alejandro"
 version: 1.0.0
-date-released: "2026-07-16"
+date-released: "2026-11-12"
 license: MIT
 abstract: >-
-  Interactive catalogue and verification scripts for the crossover
-  (self-intersection) structure of satellite repeat ground tracks: exact
-  crossover counts via a colleague-matrix all-roots solver, critical
-  inclinations and bifurcation structure, J2 invariance, an eccentric
-  O(e^2) extension, and a catalogue of 329 repeat sun-synchronous orbits.
+  Interactive tool and verification suite for the crossovers
+  (self-intersections) of circular repeat ground tracks: exact crossover
+  counts as a function of the inclination, critical inclinations, an
+  eigenvalue method and an interval method that return every crossover,
+  and a catalogue of 329 repeat sun-synchronous orbits.
 keywords:
   - repeat ground track
   - crossover points
   - astrodynamics
+  - satellite altimetry
   - sun-synchronous orbits
-  - critical inclination
 repository-code: "https://github.com/redstovely/crossover-atlas"
 url: "https://redstovely.github.io/crossover-atlas/"
+preferred-citation:
+  type: article
+  title: "Exact Crossover Counts and Critical Inclinations of Repeat Ground Tracks"
+  authors:
+    - family-names: "Vázquez"
+      given-names: "Rafael"
+    - family-names: "Tesón"
+      given-names: "Eva"
+    - family-names: "Montero Miñán"
+      given-names: "Alejandro"
+  status: submitted
+  year: 2026
