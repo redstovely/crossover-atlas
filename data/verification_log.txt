@@ -1,0 +1,128 @@
+
+== T1: counting theorem vs grid count of zeros of E vs bracketing solver
+PASS T1 L_theory == L_grid == #roots 23622 cases (254 pairs x 93 inclinations), k,m<=20, 0 mismatches
+
+== T2: critical points of gamma (zeros of G), all coprime pairs
+PASS T2a #zeros of G in (0,pi/2) = min(k,m)-1 and V as predicted 2202 pairs, k,m<=60
+PASS T2b critical values in (0,min(q,1/q)) U (max(q,1/q),inf) 
+PASS T2c value<1 => local max, value>1 => local min 
+  minimum gap between fold/pitchfork inclinations of one pair [deg]: (0.07996391744293874, (59, 60))
+  minimum gap between the last fold and the polar transition (k even) [deg]: (0.03995406988457262, (60, 59))
+
+== T3: 3-D brute-force self-intersection count vs k*L
+  7:3 i=50: theory 21, brute force 21
+  7:3 i=70: theory 35, brute force 35
+  7:3 i=89.3: theory 63, brute force 63
+  7:3 i=110: theory 63, brute force 63
+  8:3 i=60: theory 32, brute force 32
+  8:3 i=86: theory 64, brute force 64
+  8:3 i=95: theory 80, brute force 80
+  3:2 i=60: theory 0, brute force 0
+  3:2 i=85: theory 12, brute force 12
+  3:2 i=120: theory 12, brute force 12
+  2:3 i=30: theory 0, brute force 0
+  2:3 i=60: theory 4, brute force 4
+  2:3 i=100: theory 8, brute force 8
+  3:7 i=50: theory 9, brute force 9
+  3:7 i=70: theory 15, brute force 15
+  3:7 i=85: theory 15, brute force 15
+  3:7 i=130: theory 27, brute force 27
+  1:2 i=40: theory 0, brute force 0
+  1:2 i=75: theory 2, brute force 2
+  5:2 i=45: theory 10, brute force 10
+  5:2 i=88: theory 30, brute force 30
+  9:5 i=40: theory 27, brute force 27
+  9:5 i=62: theory 45, brute force 45
+  9:5 i=80: theory 45, brute force 45
+  9:5 i=89: theory 81, brute force 81
+  13:4 i=83: theory 156, brute force 156
+  14:5 i=110: theory 252, brute force 252
+  4:5 i=30: theory 0, brute force 0
+  4:5 i=45: theory 8, brute force 8
+  4:5 i=80: theory 8, brute force 8
+  5:9 i=50: theory 15, brute force 15
+  5:9 i=70: theory 25, brute force 25
+  5:9 i=88: theory 45, brute force 45
+  24:7 i=55: theory 384, brute force 384
+  18:5 i=65: theory 216, brute force 216
+  21:8 i=80: theory 336, brute force 336
+  19:3 i=70: theory 285, brute force 285
+  15:1 i=97: theory 225, brute force 225
+  16:1 i=60: theory 224, brute force 224
+PASS T3 brute force == k L 39 cases
+
+== T4: every reported event is a genuine double point
+PASS T4 coincidence of the two passes 15285 events, max |r1-r2| = 1.98e-13
+
+== T5: 19:3 near its first critical inclination
+  i=80.5000: L=15, N_tot=285, #roots=15
+  i=80.9153: L=15, N_tot=285, #roots=15
+  i=81.0000: L=17, N_tot=323, #roots=17
+PASS T5a count at arccos(3/19) is 285 
+PASS T5b count at 81.000 deg is 323 
+  3-D brute force at 81 deg, 2000 samples/rev: 323
+  3-D brute force at 81 deg, 8000 samples/rev: 323
+  3-D brute force at 81 deg, 32000 samples/rev: 323
+PASS T5c brute force at 81 deg == 323 323
+
+== T6: polar inclination, i = 90 deg exactly
+PASS T6 L(90) = k+m-1-[k even] 
+
+== T6b: duality L_{k,m} = L_{m,k} for k,m both odd
+PASS T6b odd-odd duality 
+
+== T7: zero-crossover thresholds (|k-m|=1)
+  k=2, m=1: cos i* = 0.000000000000000  (AL max over tau window: 0.000000000000)
+  k=3, m=2: cos i* = 0.111111111111111  (AL max over tau window: 0.111111111109)
+  k=5, m=4: cos i* = 0.341913847389042  (AL max over tau window: 0.341913847386)
+  k=8, m=7: cos i* = 0.535728950844460  (AL max over tau window: 0.535728950844)
+PASS T7 thresholds agree with Arnas-Linares Theorem 2 
+PASS T7b k=m-1: no crossovers at cos i = k/m itself, two crossover latitudes just beyond 
+  (3,2): cos i* = 0.11111111111111113  1/9 = 0.1111111111111111
+
+== T9: eigenvalue method vs bracketing method
+PASS T9 eigenvalue roots == bracketing roots 7874 cases, max |dw| = 2.3e-13
+
+== T10: maximum of the de Dilectis-Mortari function f at the fold inclinations
+PASS T10a max of f is an integer at every fold inclination 199 pairs with m<k<=25, 788 folds, max deviation 3.7e-14
+PASS T10b those integers are exactly the ones strictly between (k-m)/2 and k/2 
+
+== T11: L is the number of distinct crossover latitudes (i != 90 deg)
+PASS T11 #distinct latitudes == L 3550 cases
+
+== T12: latitude formula, crossing angle, tangency latitude at the folds
+PASS T12a |tan lat| = |tan i| |cos mw| at every crossover 15357 crossovers, max error 2.6e-11
+PASS T12b the two passes have equal east and opposite north components max error 1.3e-08
+PASS T12c angle to the meridian: tan(alpha) = |c - q cos^2(lat)| / sqrt(cos^2(lat) - c^2) max error 5.5e-09 rad
+PASS T12d tangency latitude at a fold: cos^2(lat) = (k/m) cos i_j 2523 folds, max error 1.3e-14
+
+== T13: number of crossover latitudes below a latitude (k > m, regimes of Corollary 1)
+PASS T13a count of crossover latitudes below a latitude equals the closed form 31766 latitude intervals, 0 mismatches
+  TOPEX/Jason: max |F - law| = 0.0128 (1/L = 0.0086); without the q-term 0.025; median latitude 58.47 deg, law 58.63 deg; passes perpendicular at latitude 56.07 deg; alpha at the equator 19.75 deg
+  Sentinel-3: max |F - law| = 0.0036 (1/L = 0.0024); without the q-term 0.037; median latitude 77.31 deg, law 77.31 deg; passes perpendicular at latitude 77.58 deg; alpha at the equator 12.57 deg
+  ICESat-2: max |F - law| = 0.0010 (1/L = 0.0007); without the q-term 0.048; median latitude 87.02 deg, law 87.02 deg; passes perpendicular at latitude 87.16 deg; alpha at the equator 5.74 deg
+PASS T13b fraction of crossovers below a latitude within 2/L of the law 
+
+== T14: exactly critical inclinations and their two sides, all types
+PASS T14a roots == events/k == counting law at and around every critical inclination 2590 cases, k,m<=14, 0 mismatches
+PASS T14b pitchfork and cusp inclinations: no spurious roots 
+PASS T14c 1:1 track: one crossover at every inclination (theory, solver, brute force) 
+  8:3 at 90 deg: 72 crossovers (pairs of passes), 56 of them at the poles; 18 distinct points
+PASS T14d polar orbit: 72 pairs, 56 at the poles, 18 distinct points for 8:3 
+
+== T15: symmetries of the track and fundamental crossovers
+PASS T15a P(theta+2pi) and P(theta+pi) are the stated rotation and rotoreflection max error 6.1e-12 deg
+PASS T15b crossover set invariant under the 2k symmetries of the track 676 cases
+PASS T15c one crossover per zero of E in (0,pi/2] in every fundamental sector 2704 sectors
+PASS T15d crossovers lie on 2k meridians pi/k apart; King (1975) Eq. (7) holds 37122 crossovers, max error 1.5e-12 (units of pi/2k)
+
+== T8: missions and timings
+   {'name': 'TOPEX/Jason', 'k': 127, 'm': 10, 'inc': 66.0, 'L': 116, 'N': 14732, 'nfold': 5, 'first_crit_deg': 87.07100529435654, 't_crit': 0.00021804217249155045, 't_roots': 0.0007378756999969482, 't_interval': 0.0009559178724884987, 't_all': 0.0013551665470004082, 't_eig': 0.004743541590869427, 'latmin': 1.9727400943296765, 'latmax': 65.99304653261727}
+   {'name': 'Sentinel-3', 'k': 385, 'm': 27, 'inc': 98.65, 'L': 411, 'N': 158235, 'nfold': 13, 'first_crit_deg': 85.97855343977598, 't_crit': 0.000670124776661396, 't_roots': 0.002682083286345005, 't_interval': 0.003352208063006401, 't_all': 0.008738666772842407, 't_eig': 0.05394999962300062, 'latmin': 0.0, 'latmax': 81.34972225701124}
+   {'name': 'ICESat-2', 'k': 1387, 'm': 91, 'inc': 92.0, 'L': 1477, 'N': 2048599, 'nfold': 45, 'first_crit_deg': 86.23816596116428, 't_crit': 0.0024515828117728233, 't_roots': 0.00965329073369503, 't_interval': 0.012104873545467854, 't_all': 0.10136150009930134, 't_eig': 0.7920461250469089, 'latmin': 0.0, 'latmax': 87.9999948972025}
+   {'name': '7:3', 'k': 7, 'm': 3, 'inc': 70.0, 'L': 5, 'N': 35, 'nfold': 1, 'first_crit_deg': 64.6230664748477, 't_crit': 2.6625581085681915e-05, 't_roots': 5.3792260587215424e-05, 't_interval': 8.041784167289734e-05, 't_all': 7.362477481365204e-05, 't_eig': 2.9374845325946808e-05, 'latmin': 0.0, 'latmax': 67.07469489696726}
+   {'name': '24:7', 'k': 24, 'm': 7, 'inc': 55.0, 'L': 16, 'N': 384, 'nfold': 3, 'first_crit_deg': 80.44534921768866, 't_crit': 8.9290551841259e-05, 't_roots': 0.00017249956727027893, 't_interval': 0.00026179011911153793, 't_all': 0.0002059154212474823, 't_eig': 9.400025010108948e-05, 'latmin': 10.61426026383123, 'latmax': 54.66454964117141}
+   {'name': 'Sentinel-2', 'k': 143, 'm': 10, 'inc': 98.57, 'L': 152, 'N': 21736, 'nfold': 5, 'first_crit_deg': 87.39922427852143, 't_crit': 0.00024245958775281906, 't_roots': 0.0009628748521208763, 't_interval': 0.0012053344398736954, 't_all': 0.0018376251682639122, 't_eig': 0.007132666185498238, 'latmin': 2.8408173875174607, 'latmax': 81.42800400770675}
+   {'name': 'Landsat-8/9', 'k': 233, 'm': 16, 'inc': 98.2, 'L': 248, 'N': 57784, 'nfold': 8, 'first_crit_deg': 87.09785762592996, 't_crit': 0.00039108283817768097, 't_roots': 0.0015855003148317337, 't_interval': 0.0019765831530094147, 't_all': 0.00373112503439188, 't_eig': 0.015642584301531315, 'latmin': 1.8089574035526323, 'latmax': 81.79927890848704}
+
+TOTAL: 0 failed checks; elapsed 23 s

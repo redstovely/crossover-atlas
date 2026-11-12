@@ -1,3 +1,8 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Crossover Atlas</title>
 <style>
   :root{
@@ -109,6 +114,8 @@
   footer b{color:var(--ink2)}
   @media (prefers-reduced-motion: reduce){ *{transition:none!important} }
 </style>
+</head>
+<body>
 
 <div class="wrap">
 <header>
@@ -126,7 +133,7 @@
     </div>
   </div>
   <div class="ctl">
-    <label for="mval">m &mdash; sidereal days / cycle</label>
+    <label for="mval">m &mdash; nodal days / cycle</label>
     <div class="stepper">
       <button id="mminus" aria-label="decrease m">&minus;</button>
       <input class="val mono" id="mval" value="1" inputmode="numeric" aria-label="m value">
@@ -149,7 +156,7 @@
 
 <div class="stats">
   <div class="stat"><div class="k">Total crossovers</div><div class="v mono" id="s-total">&ndash;</div><div class="d" id="s-total-d"></div></div>
-  <div class="stat"><div class="k">Basic families (&phi;&ge;0)</div><div class="v mono" id="s-basic">&ndash;</div><div class="d">each repeats k&times; in longitude</div></div>
+  <div class="stat"><div class="k">Crossover latitudes (&phi;&ge;0)</div><div class="v mono" id="s-basic">&ndash;</div><div class="d">each repeats k&times; in longitude</div></div>
   <div class="stat"><div class="k">Parity case</div><div class="v" id="s-case" style="font-size:19px">&ndash;</div><div class="d" id="s-case-d"></div></div>
   <div class="stat"><div class="k">Critical inclinations</div><div class="v mono" id="s-crit" style="font-size:16px;line-height:1.5">&ndash;</div><div class="d" id="s-crit-d"></div></div>
 </div>
@@ -209,7 +216,7 @@
   <p class="cap">One representative per family (&phi; &ge; 0). The full set adds the k longitude copies (spacing 360&deg;/k) and the mirrored family (&minus;&phi;, &minus;&lambda;).</p>
   <div class="tbl-scroll">
     <table id="tbl">
-      <thead><tr><th>family</th><th>latitude &phi;</th><th>longitude &lambda;</th><th>arg. of latitude u&#8321;</th><th>rev. offset r</th></tr></thead>
+      <thead><tr><th>family</th><th>latitude &phi;</th><th>longitude &lambda;</th><th>arg. of latitude u&#8321;</th><th>time lag / repeat period</th></tr></thead>
       <tbody></tbody>
     </table>
   </div>
@@ -217,15 +224,16 @@
 </div>
 
 <footer>
-  <b>Method.</b> Crossovers of a k:m repeat ground track solve the master equation
-  tan(&pi;/2 + (u&#8321;&minus;&pi;/2)&middot;m/k &minus; r&pi;/k) = tan(u&#8321;)&middot;cos i, regularized to the finite sine series
-  F(z,i) = (1&minus;cos i)&middot;sin((k+m)z) &mnplus; (1+cos i)&middot;sin((k&minus;m)z), whose real roots give every crossover;
-  critical inclinations solve F = &part;F/&part;z = 0 (first family: i* = arccos(m/k) when k, m are both odd).
-  Latitudes are invariant under secular J&#8322;, so this catalogue applies to J&#8322;-compatible repeat orbits directly.
-  Companion tool to: R. V&aacute;zquez et&nbsp;al., <i>A Quantitative Analysis of Crossover Points in Satellite Repeating Ground Tracks</i> (in preparation),
-  building on E. Tes&oacute;n (TFG, Univ. de Sevilla, 2015) and A. Montero Mi&ntilde;&aacute;n (TFG, Univ. de Sevilla, 2018).
-  Related: Kim, <i>J. Geodesy</i> 71:749 (1997); de Dilectis &amp; Mortari, <i>Front. Aerosp. Eng.</i> 2(3) (2013); Arnas &amp; Linares, <i>JGCD</i> 46(3) (2023).
-  Spherical Earth; circular orbit; k &gt; m coprime. Coastlines: Natural Earth 110m.
+  <b>Method.</b> The crossovers of a k:m circular repeat ground track are the solutions of
+  tan(kw) = cos i &middot; tan(mw), w &isin; (0, &pi;), where w/&pi; is the time between the two passes divided by the repeat period;
+  their number is k&middot;L. The counting law gives L exactly: |k&minus;m|&minus;1 at low inclination, +2 at the pitchfork
+  cos i = min(m/k, k/m) (equatorial for k&gt;m both odd, cusp for k&lt;m), +4 at each of &lfloor;m/2&rfloor; (k&gt;m) or
+  &lfloor;(k&minus;1)/2&rfloor; (k&lt;m) tangency inclinations, a polar transition at 90&deg; when k is even, and k+m&minus;1 for retrograde orbits.
+  Roots are computed by bisection on intervals where the crossover locus is monotonic, so none is missed.
+  Results hold unchanged under secular J&#8322; (the perturbation changes the altitude of the k:m orbit, not its crossover pattern).
+  Companion tool to: R. V&aacute;zquez, E. Tes&oacute;n and A. Montero Mi&ntilde;&aacute;n, <i>Exact Crossover Counts and Critical Inclinations of Repeat Ground Tracks</i> (submitted).
+  Related work: King, NASA TM X-71155 (1975); Kim, <i>J. Geodesy</i> 71:749 (1997); de Dilectis &amp; Mortari, <i>Front. Aerosp. Eng.</i> 2(3) (2013); Arnas &amp; Linares, <i>JGCD</i> 46(3) (2023).
+  Spherical Earth; circular orbit; k, m coprime. Coastlines: Natural Earth 110m.
 </footer>
 </div>
 
@@ -266,39 +274,140 @@ function findRoots(f, a, b, n){
 
 function isOddCase(k,m){ return (k%2===1) && (m%2===1); }
 
-/* basic crossovers: list of {phi,lam,u1,r} in degrees, phi>=0 */
-function basicCrossovers(k, m, iDeg){
-  const i = iDeg*D2R, ci = Math.cos(i);
-  const out = [];
-  const nSamp = Math.max(4000, 40*(k+m));
-  if (isOddCase(k,m)){
-    const F = z => (1-ci)*Math.sin((k+m)*z) - (1+ci)*Math.sin((k-m)*z);
-    const zs = [0].concat(findRoots(F, 1e-9, Math.PI/2 - 1e-9, nSamp));
-    for (const z of zs){
-      const x = k*z;
-      let r = Math.floor(x/Math.PI + 1e-12);
-      let u1 = x - r*Math.PI;
-      out.push(recover(u1, r, k, m, i, ci));
-    }
-  } else {
-    const F = w => (1-ci)*Math.sin((k+m)*w) + (1+ci)*Math.sin((k-m)*w);
-    const ws = findRoots(F, 1e-9, Math.PI/2 - 1e-9, nSamp);
-    for (const w of ws){
-      let x = k*w - Math.PI/2;
-      let r = Math.floor(x/Math.PI + 1e-12);
-      let u1 = x - r*Math.PI;
-      if (u1 < 0){ u1 += Math.PI; r -= 1; }
-      out.push(recover(u1, r, k, m, i, ci));
-    }
+/* ---- unified theory (Vazquez, Teson & Montero) --------------------------
+   Crossovers are the pairs theta_{1,2} = pi/2 + pi s -/+ k w with
+   E(w,c) = sin(kw)cos(mw) - c cos(kw)sin(mw) = 0, w in (0,pi), c = cos i.
+   The zero set is the graph of gamma(w) = tan(kw)/tan(mw); its stationary
+   points are the zeros of G(w) = k sin(2mw) - m sin(2kw).  All roots are
+   found by bisection on intervals where the function is monotonic, so none
+   can be missed. */
+function Efun(w,k,m,c){ return Math.sin(k*w)*Math.cos(m*w) - c*Math.cos(k*w)*Math.sin(m*w); }
+function Gfun(w,k,m){ return k*Math.sin(2*m*w) - m*Math.sin(2*k*w); }
+function gammaFun(w,k,m){ return Math.tan(k*w)/Math.tan(m*w); }
+function bisect(f, lo, hi){
+  let flo = f(lo);
+  for (let it=0; it<80; it++){
+    const mid = 0.5*(lo+hi), fm = f(mid);
+    if (flo*fm <= 0) hi = mid; else { lo = mid; flo = fm; }
   }
+  return 0.5*(lo+hi);
+}
+function uniqSorted(a){
+  a.sort((x,y)=>x-y);
+  const o=[a[0]];
+  for (let j=1;j<a.length;j++) if (a[j]-o[o.length-1] > 1e-13) o.push(a[j]);
+  return o;
+}
+const structCache = {};
+/* stationary points of gamma in (0,pi/2), fold values, lap breakpoints */
+function structure(k, m){
+  const key = k+":"+m;
+  if (structCache[key]) return structCache[key];
+  const H = Math.PI/2;
+  let bp = [0, H];
+  for (let p=1; p*Math.PI/(k+m) < H; p++) bp.push(p*Math.PI/(k+m));
+  const d = Math.abs(k-m);
+  for (let p=1; d>0 && p*Math.PI/d < H; p++) bp.push(p*Math.PI/d);
+  bp = uniqSorted(bp);
+  const stat = [];
+  for (let j=1; j<bp.length-2; j++){
+    const ga = Gfun(bp[j],k,m), gb = Gfun(bp[j+1],k,m);
+    if (ga*gb < 0) stat.push(bisect(w=>Gfun(w,k,m), bp[j], bp[j+1]));
+  }
+  const folds = [];
+  for (const w of stat){ const g = gammaFun(w,k,m); if (g>0 && g<1) folds.push({w, c:g}); }
+  let laps = [0, H];
+  for (let q=0; (2*q+1)*Math.PI/(2*k) < H-1e-14; q++) laps.push((2*q+1)*Math.PI/(2*k));
+  for (let p=1; p*Math.PI/m < H-1e-14; p++) laps.push(p*Math.PI/m);
+  laps = uniqSorted(laps.concat(stat));
+  return (structCache[key] = { stat, folds, laps });
+}
+/* zeros of E(.,c) in (0,pi/2]; pi/2 included when it is a zero.
+   The poles and the stationary points of gamma divide (0,pi/2) into laps on
+   which gamma is monotonic; a lap holds exactly one zero if c lies strictly
+   between the two end limits of gamma (k/m at 0; the stationary value; +-inf
+   at a pole; at pi/2: m/k for k,m odd, 0 for k even, a pole for m even) and
+   none otherwise.  A value of c within TOL_C of a finite end limit is an
+   exactly critical inclination: the lap has no zero, and a stationary point
+   whose value is c is returned once, as a double zero. */
+const TOL_C = 1e-12;
+function rootsHalf(k, m, c){
+  const H = Math.PI/2, odd = isOddCase(k,m);
+  if (k === m) return [H];                              /* 1:1 */
+  if (Math.abs(c) <= TOL_C){
+    const zs = [];
+    for (let p=1; p*Math.PI/k <= H+1e-12; p++) zs.push(p*Math.PI/k);
+    for (let b=0; (2*b+1)*Math.PI/(2*m) <= H+1e-12; b++) zs.push((2*b+1)*Math.PI/(2*m));
+    return uniqSorted(zs);
+  }
+  const st = structure(k,m);
+  const pts = [{w:0, kind:"end", v:k/m}];
+  for (let q=0; (2*q+1)*Math.PI/(2*k) < H-1e-14; q++) pts.push({w:(2*q+1)*Math.PI/(2*k), kind:"pole"});
+  for (let p=1; p*Math.PI/m < H-1e-14; p++) pts.push({w:p*Math.PI/m, kind:"pole"});
+  for (const w of st.stat) pts.push({w, kind:"stat", v:gammaFun(w,k,m)});
+  if (odd) pts.push({w:H, kind:"mid", v:m/k});
+  else if (k%2===0) pts.push({w:H, kind:"mid", v:0});
+  else pts.push({w:H, kind:"pole"});
+  pts.sort((a,b)=>a.w-b.w);
+  const skm = Math.sin(k*H)*Math.sin(m*H);
+  const out = [];
+  for (let j=0; j<pts.length-1; j++){
+    const A = pts[j], B = pts[j+1], a = A.w, b = B.w;
+    if (b-a < 1e-14) continue;
+    const rising = Gfun(0.5*(a+b),k,m) > 0;
+    const lo = A.kind!=="pole" ? A.v : (rising ? -Infinity : Infinity);
+    const hi = B.kind!=="pole" ? B.v : (rising ? Infinity : -Infinity);
+    if (!(Math.min(lo,hi)+TOL_C < c && c < Math.max(lo,hi)-TOL_C)) continue;
+    const atZero = (a === 0), atHalf = (b === H && odd);
+    /* E divided by its simple factors at the ends, with its end limits */
+    const f = w => {
+      if (atZero && w === 0) return k - c*m;
+      let e;
+      if (atHalf){
+        const z = H - w;
+        if (z === 0) return skm*(m - c*k);
+        e = skm*(Math.cos(k*z)*Math.sin(m*z) - c*Math.sin(k*z)*Math.cos(m*z))/Math.sin(z);
+      } else e = Efun(w,k,m,c);
+      return atZero ? e/Math.sin(w) : e;
+    };
+    out.push(bisect(f, a, b));
+  }
+  for (const P of pts) if (P.kind==="stat" && Math.abs(c-P.v) <= TOL_C) out.push(P.w);
+  out.sort((x,y)=>x-y);
+  if (odd) out.push(H);
   return out;
 }
-function recover(u1, r, k, m, i, ci){
-  const phi = Math.asin(Math.min(1, Math.max(-1, Math.sin(u1)*Math.sin(i))));
-  const lamu = Math.atan2(Math.sin(u1)*ci, Math.cos(u1));
-  let lam = (lamu - (m/k)*u1)*R2D;
-  lam = ((lam + 180)%360 + 360)%360 - 180;
-  return { phi: phi*R2D, lam, u1: u1*R2D, r };
+/* number of crossover latitudes L(i) from the counting law */
+function countLaw(k, m, iDeg){
+  if (k === m) return 1;                                /* 1:1 */
+  const c = Math.cos(iDeg*D2R), st = structure(k,m);
+  if (c < -TOL_C) return k+m-1;
+  if (Math.abs(c) <= TOL_C) return k+m-1-(k%2===0?1:0);
+  let L = Math.abs(k-m)-1;
+  for (const fd of st.folds){
+    if (c < fd.c - TOL_C) L += 4;
+    else if (Math.abs(c - fd.c) <= TOL_C) L += 2;       /* exactly at a tangency */
+  }
+  if (k>m && isOddCase(k,m) && c < m/k - TOL_C) L += 2;
+  if (k<m && c < k/m - TOL_C) L += 2;
+  return L;
+}
+
+/* basic crossovers: one per crossover latitude phi>=0: {phi,lam,u1,r,w} */
+function basicCrossovers(k, m, iDeg){
+  const i = iDeg*D2R, ci = Math.cos(i), si = Math.sin(i);
+  const out = [];
+  for (const w of rootsHalf(k, m, ci)){
+    const th1 = Math.PI/2 - k*w;                       /* s = 0 */
+    let phi = Math.asin(Math.min(1, Math.max(-1, si*Math.sin(th1))));
+    let lam = Math.atan2(ci*Math.sin(th1), Math.cos(th1)) - (m/k)*th1;
+    if (phi < 0){ phi = -phi; lam = -lam; }            /* mirror image */
+    lam = ((lam*R2D + 180)%360 + 360)%360 - 180;
+    let u1 = ((th1*R2D)%360 + 360)%360;
+    out.push({ phi: Math.abs(phi*R2D) < 1e-9 ? 0 : phi*R2D, lam, u1, r: w/Math.PI, w });
+  }
+  out.sort((a,b)=>a.phi-b.phi);
+  return out;
 }
 
 /* all crossovers = basic + k longitude copies + mirror family */
@@ -307,11 +416,12 @@ function allCrossovers(k, m, iDeg){
   const pts = [];
   const wrap = x => ((x + 180)%360 + 360)%360 - 180;
   for (const b of basics){
-    const eq = Math.abs(b.phi) < 1e-7;
+    const single = Math.abs(b.w - Math.PI/2) < 1e-12;  /* root at pi/2: k points */
+    const polar = single && b.phi > 90 - 1e-9;          /* k even at 90 deg: both poles */
     for (let j=0;j<k;j++){
       const sh = j*360/k;
-      pts.push({ phi: b.phi, lam: wrap(b.lam + sh) });
-      if (!eq) pts.push({ phi: -b.phi, lam: wrap(-b.lam + sh) });
+      pts.push({ phi: (polar && j%2) ? -b.phi : b.phi, lam: wrap(b.lam + sh) });
+      if (!single) pts.push({ phi: -b.phi, lam: wrap(-b.lam + sh) });
     }
   }
   return { basics, pts };
@@ -320,35 +430,12 @@ function allCrossovers(k, m, iDeg){
 /* critical inclinations: [{ideg, type}] sorted */
 function criticalInclinations(k, m){
   const out = [];
-  const nSamp = Math.max(4000, 60*(k+m));
-  if (isOddCase(k,m)){
-    out.push({ ideg: Math.acos(m/k)*R2D, type: "pitchfork (equatorial), arccos(m/k)" });
-    const G = z => k*Math.sin(2*m*z) - m*Math.sin(2*k*z);
-    for (const z of findRoots(G, 1e-6, Math.PI/2 - 1e-6, nSamp)){
-      const c = Math.tan(m*z)/Math.tan(k*z);
-      if (isFinite(c) && Math.abs(c) <= 1){
-        const ideg = Math.acos(c)*R2D;
-        if (ideg > 1e-6 && ideg < 180-1e-6) out.push({ ideg, type: "tangency" });
-      }
-    }
-  } else {
-    const G = w => m*Math.sin(2*k*w) - k*Math.sin(2*m*w);
-    for (const w of findRoots(G, 1e-6, Math.PI/2 - 1e-6, nSamp)){
-      const c = Math.tan(k*w)/Math.tan(m*w);
-      if (isFinite(c) && Math.abs(c) <= 1){
-        const ideg = Math.acos(c)*R2D;
-        if (ideg > 1e-6 && ideg < 180-1e-6) out.push({ ideg, type: "tangency" });
-      }
-    }
-    if (k%2===0) out.push({ ideg: 90, type: "polar (k even)" });
-  }
-  /* dedupe near-identical */
+  if (k>m && isOddCase(k,m)) out.push({ ideg: Math.acos(m/k)*R2D, type: "pitchfork (equatorial), arccos(m/k)" });
+  if (k<m) out.push({ ideg: Math.acos(k/m)*R2D, type: "pitchfork (cusp), arccos(k/m)" });
+  for (const fd of structure(k,m).folds) out.push({ ideg: Math.acos(fd.c)*R2D, type: "tangency" });
+  if (k%2===0) out.push({ ideg: 90, type: "polar (k even)" });
   out.sort((a,b)=>a.ideg-b.ideg);
-  const ded = [];
-  for (const c of out){
-    if (!ded.length || Math.abs(c.ideg - ded[ded.length-1].ideg) > 0.005) ded.push(c);
-  }
-  return ded.filter(c => c.ideg <= 90 + 1e-9);
+  return out;
 }
 
 /* ground track polylines in degrees, split at dateline */
@@ -393,7 +480,8 @@ const PRESETS = [
   { label:"k7 m3 demo", k:7, m:3, i:80 },
   { label:"SSO 15:1", k:15, m:1, i:98.0 },
   { label:"D&M fig.2 (24:7)", k:24, m:7, i:55 },
-  { label:"D&M fig.10 (19:3)", k:19, m:3, i:81 },
+  { label:"19:3 past pitchfork", k:19, m:3, i:81 },
+  { label:"k<m: 3:8", k:3, m:8, i:75 },
 ];
 
 /* ================= rendering ================= */
@@ -483,7 +571,7 @@ function drawMap(){
     mapDots.push({ x, y, p });
   }
   $("map-cap").textContent =
-    "k = "+K+" revolutions in m = "+M+" sidereal day"+(M>1?"s":"")+" at i = "+INC.toFixed(1)+"° — "
+    "k = "+K+" revolutions in m = "+M+" nodal day"+(M>1?"s":"")+" at i = "+INC.toFixed(1)+"° — "
     + pts.length + " crossover" + (pts.length===1?"":"s") + " per repeat cycle.";
 }
 
@@ -720,9 +808,9 @@ function refreshStats(){
   const { basics, pts } = allCrossovers(K, M, INC);
   const odd = isOddCase(K,M);
   const p = basics.length;
-  const totalFormula = odd ? (2*p-1)*K : 2*p*K;
+  const Llaw = countLaw(K, M, INC);
   $("s-total").textContent = String(pts.length);
-  $("s-total-d").textContent = odd ? "(2p−1)·k = "+totalFormula : "2p·k = "+totalFormula;
+  $("s-total-d").textContent = "counting law: k·L = "+K+" × "+Llaw+" = "+(K*Llaw);
   $("s-basic").textContent = String(p);
   $("s-case").textContent = odd ? "odd–odd" : "mixed parity";
   $("s-case-d").textContent = odd ? "equatorial crossover present" : "no equatorial crossover";
@@ -731,8 +819,8 @@ function refreshStats(){
     $("s-crit").innerHTML = crits.map(c=>fmtDeg(c.ideg)).join(" &middot; ");
     const next = crits.find(c=>c.ideg > Math.min(INC, 180-INC));
     $("s-crit-d").textContent = crits[0].type.indexOf("pitchfork")===0
-      ? "first is arccos(m/k) = "+fmtDeg(Math.acos(M/K)*R2D)
-      : "all tangency-type";
+      ? "first is arccos("+(K>M?"m/k":"k/m")+") = "+fmtDeg(Math.acos(Math.min(M/K,K/M))*R2D)
+      : (crits.some(c=>c.type==="tangency") ? "tangency-type"+(K%2===0?" + polar":"") : "polar transition only");
   } else {
     $("s-crit").textContent = "none";
     $("s-crit-d").textContent = "count is constant in i";
@@ -746,7 +834,7 @@ function refreshStats(){
       + "<td class='mono'>"+fmtDeg(b.phi,3)+"</td>"
       + "<td class='mono'>"+fmtDeg(b.lam,3)+"</td>"
       + "<td class='mono'>"+fmtDeg(b.u1,3)+"</td>"
-      + "<td class='mono'>"+b.r+"</td>";
+      + "<td class='mono'>"+b.r.toFixed(5)+"</td>";
     tb.appendChild(tr);
   });
 }
@@ -768,7 +856,8 @@ function downloadCSV(){
 function clampKM(){
   if (K < 2) K = 1;
   if (K > 60) K = 60;
-  if (M >= K) M = Math.max(1, K-1);
+  if (M > 60) M = 60;
+  if (M === K && K > 1) M = K-1;
   if (M < 1) M = 1;
   const g = gcd(K, M);
   const note = $("coprime-note");
@@ -822,11 +911,11 @@ function commitTyped(inp, isK){
   if (!/^\d+$/.test(raw)){ inp.value = old; return; }
   let v = parseInt(raw, 10);
   if (isK){
-    v = Math.max(M === 1 ? 1 : M+1, Math.min(60, v));
+    v = Math.max(1, Math.min(60, v));
     if (gcd(v, M) > 1){ inp.value = old; showKMHint(inp, "k and m must be coprime"); return; }
     K = v;
   } else {
-    v = Math.max(1, Math.min(Math.max(1, K-1), v));
+    v = Math.max(1, Math.min(60, v));
     if (gcd(K, v) > 1){ inp.value = old; showKMHint(inp, "k and m must be coprime"); return; }
     M = v;
   }
@@ -915,3 +1004,6 @@ window.addEventListener("resize", ()=>{ clearTimeout(rsT); rsT = setTimeout(()=>
 
 redrawAll();
 </script>
+
+</body>
+</html>
